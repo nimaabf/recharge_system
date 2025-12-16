@@ -44,4 +44,29 @@ class CreditRequest(models.Model):
         return f"credit request {self.id}:{self.seller.id} - {self.amount} ({self.status})"
 
 
-    
+class PhoneNumber(models.Model):
+    phone_number=models.CharField(max_length=20,unique=True,db_index=True)
+    is_active=models.BooleanField(default=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table='phone_numbers'
+    def __str__(self):
+        return f"phone number {self.id}: {self.phone_number}"
+
+class RechargeSale(models.Model):
+    seller=models.ForeignKey(Seller, on_delete=models.CASCADE,related_name='recharge_sale',db_index=True)
+    phone_number=models.ForeignKey(PhoneNumber, on_delete=models.CASCADE,related_name='recharge_sales',db_index=True)
+    amount = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    status=models.CharField(max_length=20,default="completed",db_index=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+
+
+    class Meta:
+        db_table="recharge_sales"
+        indexs=[
+            models.index(fields=['seller','created_at']),
+        ]
+
+    def __str__(self):
+        return f"Recharge sale {self.id}: seller {self.seller_id} {self.amount} "
