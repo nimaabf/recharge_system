@@ -49,14 +49,13 @@ class CreditService:
         #prevent race condition 
         try:
             credit_request=CreditRequest.objects.select_for_update().get(id=request_id)
-        except CreditRequest.DoesNotExists:
-            raise SellerNotFoundError(f"Credit request with ID {request_id} not found")
+        except CreditRequest.DoesNotExist:
+            raise CreditRequestNotFoundError(f"Credit request with ID {request_id} not found")
         #if process still pending
         if credit_request.status!=CreditRequestStatus.PENDING:
-            raise InvalidRequestError(f"Credit request {request_id} is already {credit_request.status}. Cannot approve.")
+            raise InvalidCreditRequestError(f"Credit request {request_id} is already {credit_request.status}. Cannot approve.")
 
-        
-     # lock seller too to prevent concurrent balance updates
+        # lock seller too to prevent concurrent balance updates
         try:
             seller=Seller.objects.select_for_update().get(id=credit_request.seller_id)
         except Seller.DoesNotExist:
@@ -94,9 +93,9 @@ class CreditService:
     @staticmethod
     def get_seller_balance(seller_id: int) -> Optional[Decimal]:
         try:
-            seller=seller.objects.get(id=seller_id)
+            seller=Seller.objects.get(id=seller_id)
             return seller.balance
-        except Seller.DoesNotExists:
+        except Seller.DoesNotExist:
             return None
 
     @staticmethod
@@ -104,7 +103,7 @@ class CreditService:
         # verify balance matches sum of transactions
         try:
             seller=Seller.objects.get(id=seller_id)
-        except Seller.DoesNotExists:
+        except Seller.DoesNotExist:
             raise SellerNotFoundError(f"Seller with ID {seller_id} not found")
         
         transactions = CreditTransaction.objects.filter(seller_id=seller_id)
