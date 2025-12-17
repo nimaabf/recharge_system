@@ -15,11 +15,15 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Server runs at `http://localhost:8000`
+By default, server runs at `http://localhost:8000`. You can specify a different host and port:
+
+```bash
+python manage.py runserver 0.0.0.0:8000
+```
 
 ## API Endpoints
 
-Base URL: `http://localhost:8000/api/`
+Base URL: `http://localhost:8000/api/` (default)
 
 - `POST /api/sellers/<seller_id>/credit-request/` - Create credit request
   - Body: `{"amount": "100000.00"}`
@@ -33,7 +37,7 @@ Base URL: `http://localhost:8000/api/`
 
 ## Setup Test Data
 
-Before testing API, create test data using Django admin at `http://localhost:8000/admin/` or Django shell:
+Before testing API, create test data using Django admin (default: `http://localhost:8000/admin/`) or Django shell:
 
 ```bash
 python manage.py shell
