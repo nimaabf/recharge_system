@@ -42,5 +42,5 @@ class CreditTransactionSerializer(serializers.ModelSerializer):
 class TransactionHistorySerializer(serializers.Serializer):
     seller_id=serializers.IntegerField()
     current_balance=serializers.DecimalField(max_digits=15, decimal_places=2)
-    transaction=CreditTransactionSerializer(many=True)
+    transactions=CreditTransactionSerializer(many=True)
     total_count=serializers.IntegerField()

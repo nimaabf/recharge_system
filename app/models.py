@@ -1,5 +1,5 @@
 from django.db import models
-from django.validators import MinValueValidator
+from django.core.validators import MinValueValidator
 from decimal import Decimal
 
 
@@ -34,15 +34,15 @@ class Seller(models.Model):
 class CreditRequest(models.Model):
     seller=models.ForeignKey(Seller, on_delete=models.CASCADE,related_name='credit_requests',db_index=True)
     amount=models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
-    status=model.CharField(max_length=20,choices=CreditRequestStatus.choices,default=CreditRequestStatus.PENDING,db_index=True)
+    status=models.CharField(max_length=20,choices=CreditRequestStatus.choices,default=CreditRequestStatus.PENDING,db_index=True)
     created_at=models.DateTimeField(auto_now_add=True)
     approved_at=models.DateTimeField(null=True,blank=True)
 
 
     class Meta:
         db_table="credit_requests"
-        indexs=[
-            models.Index(fields=['seller',status])
+        indexes=[
+            models.Index(fields=['seller','status'])
         ]
 
     def __str__(self):
@@ -87,8 +87,8 @@ class RechargeSale(models.Model):
 
     class Meta:
         db_table="recharge_sales"
-        indexs=[
-            models.index(fields=['seller','created_at']),
+        indexes=[
+            models.Index(fields=['seller','created_at']),
         ]
 
     def __str__(self):

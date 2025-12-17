@@ -1,7 +1,10 @@
 from django.db import transaction
+from django.utils import timezone
 from decimal import Decimal
-from datetime import datetime
 from typing import Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 from app.models import Seller,CreditRequest,RechargeSale,CreditTransaction,CreditRequestStatus,TransactionType
@@ -30,8 +33,12 @@ class CreditService:
         except Seller.DoesNotExist:
             raise SellerNotFoundError(f"Seller with id {seller_id} not found")
         
-        #now we need check for pending requests with this amount
-        existing_request=CreditRequest.objects.filter(seller_id=seller_id,amount=amount,status=CreditRequestStatus.PENDING).first()
+        # check for pending requests with same amount
+        existing_request = CreditRequest.objects.filter(
+            seller_id=seller_id,
+            amount=amount,
+            status=CreditRequestStatus.PENDING
+        ).first()
         if existing_request:
             return existing_request
 
@@ -46,27 +53,27 @@ class CreditService:
         
     @staticmethod
     def approve_credit_request(request_id:int)->CreditRequest:
-        #prevent race condition 
+        # prevent race condition
         try:
-            credit_request=CreditRequest.objects.select_for_update().get(id=request_id)
+            credit_request = CreditRequest.objects.select_for_update().get(id=request_id)
         except CreditRequest.DoesNotExist:
             raise CreditRequestNotFoundError(f"Credit request with ID {request_id} not found")
-        #if process still pending
-        if credit_request.status!=CreditRequestStatus.PENDING:
+        # check if still pending
+        if credit_request.status != CreditRequestStatus.PENDING:
             raise InvalidCreditRequestError(f"Credit request {request_id} is already {credit_request.status}. Cannot approve.")
 
-        # lock seller too to prevent concurrent balance updates
+        # lock seller to prevent concurrent balance updates
         try:
-            seller=Seller.objects.select_for_update().get(id=credit_request.seller_id)
+            seller = Seller.objects.select_for_update().get(id=credit_request.seller_id)
         except Seller.DoesNotExist:
             raise SellerNotFoundError(f"Seller with ID {credit_request.seller_id} not found")
 
         try:
             with transaction.atomic():
-                new_balance=seller.balance+credit_request.amount
+                new_balance = seller.balance + credit_request.amount
 
                 credit_request.status=CreditRequestStatus.APPROVED
-                credit_request.approved_at=datetime.now()
+                credit_request.approved_at=timezone.now()
                 credit_request.save()
 
                 seller.balance=new_balance
@@ -99,22 +106,22 @@ class CreditService:
             return None
 
     @staticmethod
-    def verify_accounting_integrity(seller_id:int)->dict:
+    def verify_accounting_integrity(seller_id: int) -> dict:
         # verify balance matches sum of transactions
         try:
-            seller=Seller.objects.get(id=seller_id)
+            seller = Seller.objects.get(id=seller_id)
         except Seller.DoesNotExist:
             raise SellerNotFoundError(f"Seller with ID {seller_id} not found")
         
         transactions = CreditTransaction.objects.filter(seller_id=seller_id)
 
-        # sum all transactions 
+        # sum all transactions
         calculated_balance = sum(
             Decimal(str(t.amount)) for t in transactions
         )
 
         current_balance = Decimal(str(seller.balance))
-        is_match = abs(current_balance - calculated_balance) < Decimal('0.01')  
+        is_match = abs(current_balance - calculated_balance) < Decimal('0.01')
         
         # rounding tolerance
 

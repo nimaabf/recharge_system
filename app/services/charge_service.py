@@ -1,9 +1,12 @@
 from django.db import transaction
 from decimal import Decimal
+import logging
 
 from app.models import Seller,PhoneNumber,RechargeSale,CreditTransaction,TransactionType
 
 from app.services.credit_service import SellerNotFoundError,CreditServiceError,InsufficientBalanceError
+
+logger = logging.getLogger(__name__)
 
 
 class PhoneNumberNotFoundError(CreditServiceError):
@@ -67,10 +70,15 @@ class ChargeService:
 
                 recharge_sale.refresh_from_db()
                 seller.refresh_from_db()
+                
+                logger.info(f"Recharge sale {recharge_sale.id} completed: seller {seller_id}, amount: {charge_amount}, new balance: {new_balance}")
 
                 return recharge_sale
 
+        except (InsufficientBalanceError, PhoneNumberNotFoundError, PhoneNumberInactiveError, SellerNotFoundError):
+            raise
         except Exception as e:
+            logger.error(f"Failed to process charge for seller {seller_id}: {str(e)}", exc_info=True)
             raise CreditServiceError(f"Failed to process charge: {str(e)}")
 
     @staticmethod
