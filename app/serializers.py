@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from decimal import Decimal
-from .model import (Seller, CreditRequest, CreditTransaction, PhoneNumber, RechargeSale,
+from .models import (Seller, CreditRequest, CreditTransaction, PhoneNumber, RechargeSale,
     CreditRequestStatus, TransactionType)
 
 class CreditRequestCreateSerializer(serializers.Serializer):
     amount=serializers.DecimalField(max_digits=15, decimal_places=2, min_value=Decimal('0.01'))
 
-class CreditRequestListSerializer(serializers.ModelSerializer):
+class CreditRequestSerializer(serializers.ModelSerializer):
    seller_id=serializers.IntegerField(source='seller.id',read_only=True)
 
    class Meta:
