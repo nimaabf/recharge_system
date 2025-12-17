@@ -99,5 +99,31 @@ class CreditService:
         except Seller.DoesNotExists:
             return None
 
-    # @staticmethod
+    @staticmethod
+    def verify_accounting_integrity(seller_id:int)->dict:
+        # verify balance matches sum of transactions
+        try:
+            seller=Seller.objects.get(id=seller_id)
+        except Seller.DoesNotExists:
+            raise SellerNotFoundError(f"Seller with ID {seller_id} not found")
+        
+        transactions = CreditTransaction.objects.filter(seller_id=seller_id)
+
+        # sum all transactions 
+        calculated_balance = sum(
+            Decimal(str(t.amount)) for t in transactions
+        )
+
+        current_balance = Decimal(str(seller.balance))
+        is_match = abs(current_balance - calculated_balance) < Decimal('0.01')  
+        
+        # rounding tolerance
+
+        return {
+            "seller_id": seller_id,
+            "current_balance": current_balance,
+            "calculated_balance": calculated_balance,
+            "is_match": is_match,
+            "transaction_count": transactions.count()
+        }
     
