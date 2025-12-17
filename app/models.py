@@ -8,6 +8,11 @@ class CreditRequestStatus(models.TextChoices):
     APPROVED = "approved", "Approved"
     REJECTED = "rejected", "Rejected"
 
+class TransactionType(models.TextChoices):
+    CREDIT_INCREASE = "credit_increase", "Credit Increase"
+    RECHARGE_SALE = "recharge_sale", "Recharge Sale"
+
+
 class Seller(models.Model):
     name = models.CharField(max_length=100)
     balance=models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00'),validators=[MinValueValidator(Decimal('0.00'))])
@@ -42,6 +47,24 @@ class CreditRequest(models.Model):
 
     def __str__(self):
         return f"credit request {self.id}:{self.seller.id} - {self.amount} ({self.status})"
+
+class CreditTransaction(models.Model):
+    # for tracking all credit change
+    seller=models.ForeignKey(Seller, on_delete=models.CASCADE,related_name='credit_transactions',db_index=True)
+    amount=models.DecimalField(max_digits=15,decimal_places=2)
+    transaction_type=models.CharField(max_length=20,choices=TransactionType.choices,db_index=True)
+    reference_id=models.IntegerField(null=True,blank=True,db_index=True)
+    balance_after=models.DecimalField(max_digits=15,decimal_places=2)
+    created_at=models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table="credit_transactions"
+        indexes=[
+            models.Index(fields=['seller','created_at']),
+        ]
+    def __str__(self):
+        return f"Credit Request {self.id}: seller {self.seller.name} - {self.amount} {self.transaction_type} "
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
 
 
 class PhoneNumber(models.Model):
