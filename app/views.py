@@ -27,7 +27,9 @@ from app.services.charge_service import (
     InsufficientBalanceError
 )
 
+
 class CreateCreditRequestView(APIView):
+    # create new credit request for seller
     def post(self, request, seller_id):
         serializer = CreditRequestCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -51,6 +53,7 @@ class CreateCreditRequestView(APIView):
 
 
 class ApproveCreditRequestView(APIView):
+    # approve pending credit request and increase seller balance
     def post(self, request, request_id):
         try:
             credit_request = CreditService.approve_credit_request(request_id)
@@ -67,6 +70,7 @@ class ApproveCreditRequestView(APIView):
 
 
 class ChargePhoneView(APIView):
+    # process phone recharge sale and deduct from seller balance
     def post(self, request, seller_id):
         serializer = RechargeChargeRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -93,23 +97,22 @@ class ChargePhoneView(APIView):
 
 
 class SellerBalanceView(APIView):
+    # get current balance for seller
     def get(self, request, seller_id):
         balance = CreditService.get_seller_balance(seller_id)
         if balance is None:
             raise NotFound(f"Seller with ID {seller_id} not found")
         
-        try:
-            seller = Seller.objects.get(id=seller_id)
-            return Response(BalanceSerializer({
-                'seller_id': seller_id,
-                'current_balance': balance,
-                'seller_name': seller.name
-            }).data)
-        except Seller.DoesNotExist:
-            raise NotFound(f"Seller with ID {seller_id} not found")
+        seller = Seller.objects.get(id=seller_id)
+        return Response(BalanceSerializer({
+            'seller_id': seller_id,
+            'current_balance': balance,
+            'seller_name': seller.name
+        }).data)
 
 
 class TransactionHistoryView(APIView):
+    # get all credit transactions for seller
     def get(self, request, seller_id):
         try:
             seller = Seller.objects.get(id=seller_id)
@@ -131,6 +134,7 @@ class TransactionHistoryView(APIView):
 
 
 class VerifyAccountingView(APIView):
+    # verify accounting integrity by comparing balance with transaction sum
     def get(self, request, seller_id):
         try:
             result = CreditService.verify_accounting_integrity(seller_id)

@@ -2,24 +2,24 @@ from django.db import transaction
 from decimal import Decimal
 import logging
 
-from app.models import Seller,PhoneNumber,RechargeSale,CreditTransaction,TransactionType
-
-from app.services.credit_service import SellerNotFoundError,CreditServiceError,InsufficientBalanceError
+from app.models import Seller, PhoneNumber, RechargeSale, CreditTransaction, TransactionType
+from app.services.credit_service import SellerNotFoundError, CreditServiceError, InsufficientBalanceError
 
 logger = logging.getLogger(__name__)
 
 
 class PhoneNumberNotFoundError(CreditServiceError):
-   pass
+    pass
+
 
 class PhoneNumberInactiveError(CreditServiceError):
-   pass
+    pass
 
 
 class ChargeService:
 
     @staticmethod
-    def charge_phone(seller_id:int,phone_number_id:int,amount:Decimal)-> RechargeSale:
+    def charge_phone(seller_id: int, phone_number_id: int, amount: Decimal) -> RechargeSale:
         # check phone number
         try:
             phone_number = PhoneNumber.objects.get(id=phone_number_id)

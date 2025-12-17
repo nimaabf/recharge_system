@@ -15,8 +15,8 @@ class TransactionType(models.TextChoices):
 
 class Seller(models.Model):
     name = models.CharField(max_length=100)
-    balance=models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00'),validators=[MinValueValidator(Decimal('0.00'))])
-    created_at=models.DateTimeField(auto_now_add=True)
+    balance = models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 
@@ -24,7 +24,8 @@ class Seller(models.Model):
         db_table="seller"
         indexes=[models.Index(fields=['name'])]
 
-        constraints=[models.CheckConstraint(check=models.Q(balance__gte=0), name='check_balance_positive')
+        constraints=[
+            models.CheckConstraint(check=models.Q(balance__gte=0), name='check_balance_positive')
         ]
 
 
@@ -32,11 +33,11 @@ class Seller(models.Model):
         return f"seller: {self.id}: {self.name}"
 
 class CreditRequest(models.Model):
-    seller=models.ForeignKey(Seller, on_delete=models.CASCADE,related_name='credit_requests',db_index=True)
-    amount=models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
-    status=models.CharField(max_length=20,choices=CreditRequestStatus.choices,default=CreditRequestStatus.PENDING,db_index=True)
-    created_at=models.DateTimeField(auto_now_add=True)
-    approved_at=models.DateTimeField(null=True,blank=True)
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='credit_requests', db_index=True)
+    amount = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    status = models.CharField(max_length=20, choices=CreditRequestStatus.choices, default=CreditRequestStatus.PENDING, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
 
 
     class Meta:
@@ -50,12 +51,12 @@ class CreditRequest(models.Model):
 
 class CreditTransaction(models.Model):
     # for tracking all credit change
-    seller=models.ForeignKey(Seller, on_delete=models.CASCADE,related_name='credit_transactions',db_index=True)
-    amount=models.DecimalField(max_digits=15,decimal_places=2)
-    transaction_type=models.CharField(max_length=20,choices=TransactionType.choices,db_index=True)
-    reference_id=models.IntegerField(null=True,blank=True,db_index=True)
-    balance_after=models.DecimalField(max_digits=15,decimal_places=2)
-    created_at=models.DateTimeField(auto_now_add=True)
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='credit_transactions', db_index=True)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    transaction_type = models.CharField(max_length=20, choices=TransactionType.choices, db_index=True)
+    reference_id = models.IntegerField(null=True, blank=True, db_index=True)
+    balance_after = models.DecimalField(max_digits=15, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table="credit_transactions"
@@ -63,14 +64,13 @@ class CreditTransaction(models.Model):
             models.Index(fields=['seller','created_at']),
         ]
     def __str__(self):
-        return f"Credit Request {self.id}: seller {self.seller.name} - {self.amount} {self.transaction_type} "
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+        return f"Credit Request {self.id}: seller {self.seller.name} - {self.amount} {self.transaction_type}"
 
 
 class PhoneNumber(models.Model):
-    phone_number=models.CharField(max_length=20,unique=True,db_index=True)
-    is_active=models.BooleanField(default=True)
-    created_at=models.DateTimeField(auto_now_add=True)
+    phone_number = models.CharField(max_length=20, unique=True, db_index=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table='phone_numbers'
@@ -78,11 +78,11 @@ class PhoneNumber(models.Model):
         return f"phone number {self.id}: {self.phone_number}"
 
 class RechargeSale(models.Model):
-    seller=models.ForeignKey(Seller, on_delete=models.CASCADE,related_name='recharge_sale',db_index=True)
-    phone_number=models.ForeignKey(PhoneNumber, on_delete=models.CASCADE,related_name='recharge_sales',db_index=True)
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='recharge_sale', db_index=True)
+    phone_number = models.ForeignKey(PhoneNumber, on_delete=models.CASCADE, related_name='recharge_sales', db_index=True)
     amount = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
-    status=models.CharField(max_length=20,default="completed",db_index=True)
-    created_at=models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default="completed", db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
     class Meta:

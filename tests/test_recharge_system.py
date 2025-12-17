@@ -3,7 +3,6 @@ import django
 from decimal import Decimal
 from concurrent.futures import ThreadPoolExecutor
 
-# setup django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'recharge_system.settings')
 django.setup()
 
