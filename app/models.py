@@ -53,7 +53,6 @@ class CreditRequest(models.Model):
         return f"credit request {self.id}:{self.seller.id} - {self.amount} ({self.status})"
 
 class CreditTransaction(models.Model):
-    # for tracking all credit change
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='credit_transactions', db_index=True)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     transaction_type = models.CharField(max_length=20, choices=TransactionType.choices, db_index=True)
@@ -100,12 +99,9 @@ class RechargeSale(models.Model):
 
 @receiver(post_save, sender=Seller)
 def record_initial_balance(sender, instance, created, **kwargs):
-    """
-    Record initial balance as a transaction if seller is created with non-zero balance.
-    This ensures all balance changes are tracked for accounting integrity.
-    """
+    """Record initial balance as transaction if seller created with non-zero balance."""
     if created and instance.balance > Decimal('0.00'):
-        # Check if transaction already exists (avoid duplicates on bulk create)
+        # Avoid duplicates on bulk create
         existing_transaction = CreditTransaction.objects.filter(
             seller=instance,
             transaction_type=TransactionType.INITIAL_BALANCE
