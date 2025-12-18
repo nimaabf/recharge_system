@@ -2,14 +2,44 @@
 
 B2B recharge sales system with credit management and transaction tracking.
 
-## Installation
+## Quick Start with Docker
+
+**Prerequisites:** Docker Desktop must be installed and running.
+
+```bash
+docker compose up --build
+```
+
+For older Docker versions:
+
+```bash
+docker-compose up --build
+```
+
+Application will be available at `http://localhost:8000`
+
+**Note:**
+
+- The project uses SQLite database (simple SQL database, no additional setup required)
+- No `.env` file is required - the project works out of the box with default settings
+- Database migrations run automatically on startup
+
+To stop containers:
+
+```bash
+docker compose down
+```
+
+## Local Development
+
+### Installation
 
 ```bash
 pip install -r requirements.txt
 python manage.py migrate
 ```
 
-## Run Server
+### Run Server
 
 ```bash
 python manage.py runserver

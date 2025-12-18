@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
                 ],
                 "constraints": [
                     models.CheckConstraint(
-                        condition=models.Q(("balance__gte", 0)),
+                        check=models.Q(balance__gte=0),
                         name="check_balance_positive",
                     )
                 ],
@@ -148,6 +148,7 @@ class Migration(migrations.Migration):
                         choices=[
                             ("credit_increase", "Credit Increase"),
                             ("recharge_sale", "Recharge Sale"),
+                            ("initial_balance", "Initial Balance"),
                         ],
                         db_index=True,
                         max_length=20,

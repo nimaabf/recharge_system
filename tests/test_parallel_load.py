@@ -88,15 +88,3 @@ class ParallelLoadTest(TransactionTestCase):
         print("In production, use separate API calls or message queues")
 
 
-class MultiProcessVsMultiThreadDemo:
-    
-    @staticmethod
-    def explain_difference():
-        print("threads share memory fast data sharing lower overhead")
-        print("processes true parallelism isolated memory higher overhead")
-        print("for this recharge system threads are better for db operations")
-
-
-if __name__ == '__main__':
-    demo = MultiProcessVsMultiThreadDemo()
-    demo.explain_difference()

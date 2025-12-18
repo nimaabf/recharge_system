@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 
@@ -11,6 +13,7 @@ class CreditRequestStatus(models.TextChoices):
 class TransactionType(models.TextChoices):
     CREDIT_INCREASE = "credit_increase", "Credit Increase"
     RECHARGE_SALE = "recharge_sale", "Recharge Sale"
+    INITIAL_BALANCE = "initial_balance", "Initial Balance"
 
 
 class Seller(models.Model):
@@ -93,3 +96,26 @@ class RechargeSale(models.Model):
 
     def __str__(self):
         return f"Recharge sale {self.id}: seller {self.seller_id} {self.amount} "
+
+
+@receiver(post_save, sender=Seller)
+def record_initial_balance(sender, instance, created, **kwargs):
+    """
+    Record initial balance as a transaction if seller is created with non-zero balance.
+    This ensures all balance changes are tracked for accounting integrity.
+    """
+    if created and instance.balance > Decimal('0.00'):
+        # Check if transaction already exists (avoid duplicates on bulk create)
+        existing_transaction = CreditTransaction.objects.filter(
+            seller=instance,
+            transaction_type=TransactionType.INITIAL_BALANCE
+        ).first()
+        
+        if not existing_transaction:
+            CreditTransaction.objects.create(
+                seller=instance,
+                amount=instance.balance,
+                transaction_type=TransactionType.INITIAL_BALANCE,
+                reference_id=None,
+                balance_after=instance.balance
+            )

@@ -1,0 +1,14 @@
+services:
+  web:
+    build: .
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - '8000:8000'
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-xebix5i-)-b9_xf%p%lmz-igbcmlns9$y44$7^0gp$7c6jr+yb
+    # Optional: uncomment to use .env file if it exists
+    # env_file:
+    #   - .env
