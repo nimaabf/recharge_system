@@ -67,14 +67,18 @@ Base URL: `http://localhost:8000/api/` (default)
 
 ## Setup Test Data
 
-Before testing API, create test data using Django admin (default: `http://localhost:8000/admin/`) or Django shell:
+Create sample data for testing API endpoints:
 
 ```bash
-python manage.py shell
->>> from app.models import Seller, PhoneNumber
->>> Seller.objects.create(name="Test Seller", balance=100000)
->>> PhoneNumber.objects.create(phone_number="09123456789", is_active=True)
+python manage.py create_sample_data
 ```
+
+This command creates:
+
+- 2 sample sellers with initial balances
+- 5 sample phone numbers
+
+**Alternative:** You can also create data manually using Django admin (`http://localhost:8000/admin/`) or Django shell.
 
 ## Run Tests
 
